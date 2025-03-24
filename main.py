@@ -1,7 +1,7 @@
 import pyaudio
 import numpy as np
 import time  # Import time for delay
-from mock_ws281x import PixelStrip, Color  # Import the library for WS2812B LEDs
+# from mock_ws281x import PixelStrip, Color  # Import the library for WS2812B LEDs this is for testing on a non-Raspberry Pi
 # from rpi_ws281x import PixelStrip, Color  # Uncomment this line when running on Raspberry Pi
 
 # Parameters
