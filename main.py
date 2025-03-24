@@ -1,14 +1,14 @@
 import pyaudio
 import numpy as np
 import time  # Import time for delay
-# from mock_ws281x import PixelStrip, Color  # Import the library for WS2812B LEDs this is for testing on a non-Raspberry Pi
+from mock_ws281x import PixelStrip, Color  # Import the library for WS2812B LEDs this is for testing on a non-Raspberry Pi
 # from rpi_ws281x import PixelStrip, Color  # Uncomment this line when running on Raspberry Pi
 
 # Parameters
-CHUNK = 1024  # Number of audio samples per frame
+CHUNK = 512   # Reduce chunk size
 FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
 CHANNELS = 1  # Number of audio channels (1 for mono)
-RATE = 44100  # Sample rate (samples per second)
+RATE = 22050  # Reduce sample rate
 
 # LED strip configuration:
 LED_COUNT = 30        # Number of LED pixels.
@@ -38,8 +38,12 @@ def get_audio_input():
 
     try:
         while True:
-            # Read audio data from the stream
-            data = stream.read(CHUNK)
+            try:
+                data = stream.read(CHUNK, exception_on_overflow=False)  # Disable exception on overflow
+            except OSError as e:
+                print(f"Audio input overflowed: {e}")
+                data = b'\x00' * CHUNK  # Use silence as fallback
+
             # Convert the data to numpy array
             audio_data = np.frombuffer(data, dtype=np.int16)
             # Calculate the volume (RMS)
