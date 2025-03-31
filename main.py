@@ -2,10 +2,10 @@ import pyaudio
 import numpy as np
 import time
 import board  # Required for neopixel
-import adafruit_neopixel as neopixel  # Import the neopixel library
+import neopixel as neopixel  # Correct import for the neopixel library
 
 # Parameters
-CHUNK = 1024  # Number of audio samples per frame
+CHUNK = 2048  # Number of audio samples per frame
 FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
 CHANNELS = 1  # Number of audio channels (1 for mono)
 RATE = 44100  # Sample rate (samples per second)
@@ -33,8 +33,11 @@ def get_audio_input():
 
     try:
         while True:
-            # Read audio data from the stream
-            data = stream.read(CHUNK)
+            try:
+                data = stream.read(CHUNK, exception_on_overflow=False)
+            except OSError as e:
+                print(f"Audio input overflowed: {e}")
+                continue
             # Convert the data to numpy array
             audio_data = np.frombuffer(data, dtype=np.int16)
             # Calculate the volume (RMS)
