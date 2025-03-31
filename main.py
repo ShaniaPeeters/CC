@@ -2,7 +2,7 @@ import pyaudio
 import numpy as np
 import time
 import board  # Required for neopixel
-import neopixel  # Import the neopixel library
+import adafruit_neopixel as neopixel  # Import the neopixel library
 
 # Parameters
 CHUNK = 1024  # Number of audio samples per frame
@@ -12,7 +12,7 @@ RATE = 44100  # Sample rate (samples per second)
 
 # LED strip configuration:
 LED_COUNT = 30        # Number of LED pixels.
-LED_PIN = board.D18   # GPIO pin connected to the pixels (D18 for PWM).
+LED_PIN =  board.D18  # GPIO pin connected to the pixels (D18 for PWM).
 LED_BRIGHTNESS = 1.0  # Brightness (0.0 to 1.0)
 
 def get_audio_input():
