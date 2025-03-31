@@ -1,8 +1,8 @@
 import pyaudio
 import numpy as np
-import time  # Import time for delay
-# from mock_ws281x import PixelStrip, Color  # Import the library for WS2812B LEDs this is for testing on a non-Raspberry Pi
-# from rpi_ws281x import PixelStrip, Color  # Uncomment this line when running on Raspberry Pi
+import time
+import board  # Required for neopixel
+import neopixel  # Import the neopixel library
 
 # Parameters
 CHUNK = 1024  # Number of audio samples per frame
@@ -12,12 +12,8 @@ RATE = 44100  # Sample rate (samples per second)
 
 # LED strip configuration:
 LED_COUNT = 30        # Number of LED pixels.
-LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
-LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
-LED_DMA = 10          # DMA channel to use for generating signal (try 10)
-LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
-LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
-LED_CHANNEL = 0       # Set to 1 for GPIOs 13, 19, 41, 45 or 53
+LED_PIN = board.D18   # GPIO pin connected to the pixels (D18 for PWM).
+LED_BRIGHTNESS = 1.0  # Brightness (0.0 to 1.0)
 
 def get_audio_input():
     # Initialize PyAudio
@@ -31,8 +27,7 @@ def get_audio_input():
                     frames_per_buffer=CHUNK)
 
     # Initialize LED strip
-    strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
-    strip.begin()
+    strip = neopixel.NeoPixel(LED_PIN, LED_COUNT, brightness=LED_BRIGHTNESS, auto_write=False)
 
     print("Listening...")
 
@@ -49,14 +44,14 @@ def get_audio_input():
             # Perform actions based on volume
             if volume > 50:
                 print("Sound detected!")
-                color = Color(255, 0, 0)  # Red color for high volume
+                color = (255, 0, 0)  # Red color for high volume
             else:
                 print("Sound is quiet.")
-                color = Color(0, 0, 255)  # Blue color for low volume
+                color = (0, 0, 255)  # Blue color for low volume
 
             # Set LED color based on volume
-            for i in range(strip.numPixels()):
-                strip.setPixelColor(i, color)
+            for i in range(LED_COUNT):
+                strip[i] = color
             strip.show()
 
             time.sleep(0.1)  # Add a slight delay of 0.1 seconds
@@ -71,8 +66,7 @@ def get_audio_input():
     p.terminate()
 
     # Clear the LED strip
-    for i in range(strip.numPixels()):
-        strip.setPixelColor(i, Color(0, 0, 0))
+    strip.fill((0, 0, 0))
     strip.show()
 
 if __name__ == "__main__":
