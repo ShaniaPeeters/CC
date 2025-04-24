@@ -60,8 +60,15 @@ def get_audio_input():
             print(f"Volume: {volume}")
 
             # Determine how many LEDs to trigger.
-            # Adjust the divisor (here 4000) to control sensitivity.
-            trigger_count = min(LED_COUNT, int((volume / 4000) * LED_COUNT))
+            # Set a minimum threshold and a maximum volume for scaling.
+            min_volume = 30    # volume to start triggering LEDs
+            max_volume = 100  # volume at which all LEDs are triggered
+
+            if volume < min_volume:
+                trigger_count = 0
+            else:
+                # Scale linearly from 1 LED at min_volume to LED_COUNT at max_volume
+                trigger_count = min(LED_COUNT, 1 + int((volume - min_volume) * (LED_COUNT - 1) / (max_volume - min_volume)))
             print(f"Triggering {trigger_count} LEDs")
 
             # For the triggered LEDs, update color based on current state.
