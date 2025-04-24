@@ -4,6 +4,8 @@ import time
 import board  # Required for neopixel
 import neopixel as neopixel  # Correct import for the neopixel library
 
+#to run use this: sudo $(which python) /home/piremote/Desktop/CC/main.py
+
 # Parameters
 CHUNK = 2048  # Number of audio samples per frame
 FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
@@ -45,7 +47,7 @@ def get_audio_input():
             print(f"Volume: {volume}")
 
             # Perform actions based on volume
-            if volume > 50:
+            if volume > 20:
                 print("Sound detected!")
                 color = (255, 0, 0)  # Red color for high volume
             else:
