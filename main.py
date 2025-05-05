@@ -4,6 +4,8 @@ import time
 import board
 from ledstrip import LEDStrip  # new import
 
+#to run use  sudo $(which python) /home/piremote/Desktop/CC/main.py
+
 # Parameters
 CHUNK = 2048               # Number of audio samples per frame
 FORMAT = pyaudio.paInt16   # Audio format (16-bit PCM)
@@ -14,7 +16,7 @@ RATE = 44100               # Sample rate (samples per second)
 # Replace single LED strip configuration with multiple LED configurations:
 # Each tuple is (pin, number of LEDs, brightness)
 LED_CONFIGS = [
-    (board.D18, 100, 1.0)  # First LED strip
+    (board.D18, 150, 1.0)  # First LED strip
 ]
 
 # Create LEDStrip instances from LED_CONFIGS
@@ -55,8 +57,8 @@ def get_audio_input():
             print(f"Volume: {volume}")
 
             # Determine how many LEDs to trigger.
-            min_volume = 60
-            max_volume = 100
+            min_volume = 70
+            max_volume = 110
             if volume < min_volume:
                 trigger_count = 0
             else:
