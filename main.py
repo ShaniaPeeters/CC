@@ -12,6 +12,10 @@ FORMAT = pyaudio.paInt16   # Audio format (16-bit PCM)
 CHANNELS = 1               # Number of audio channels (1 for mono)
 RATE = 44100               # Sample rate (samples per second)
 
+# Configurable volume thresholds
+MIN_VOLUME = 65
+MAX_VOLUME = 100
+
 # LED strip configuration:
 # Replace single LED strip configuration with multiple LED configurations:
 # Each tuple is (pin, number of LEDs, brightness)
@@ -54,16 +58,16 @@ def get_audio_input():
             audio_data = np.frombuffer(data, dtype=np.int16)
             volume = np.sqrt(np.mean(audio_data**2))
             volume = np.nan_to_num(volume)
+            if volume == 0:
+                volume = MAX_VOLUME  # act as if it's max audio level
             print(f"Volume: {volume}")
 
             # Determine how many LEDs to trigger.
-            min_volume = 55
-            max_volume = 100
-            if volume < min_volume:
+            if volume < MIN_VOLUME:
                 trigger_count = 0
             else:
                 # Linear scaling from 1 LED to full count across volume range.
-                trigger_count = min(100, 1 + int((volume - min_volume) * (100 - 1) / (max_volume - min_volume)))
+                trigger_count = min(100, 1 + int((volume - MIN_VOLUME) * (100 - 1) / (MAX_VOLUME - MIN_VOLUME)))
             print(f"Triggering {trigger_count} LEDs")
 
             # Update each LED strip: trigger LEDs and fade

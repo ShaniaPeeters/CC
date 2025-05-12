@@ -3,7 +3,7 @@ import board
 import neopixel
 
 # Color definitions
-YELLOW = (255, 230, 0)  # yellow with less green
+YELLOW = (255, 216, 1)  # yellow with less green
 ORANGE = (255, 50, 0)   # modified: way more orange
 RED    = (255, 0, 0)
 OFF    = (0, 0, 0)
