@@ -57,8 +57,8 @@ def get_audio_input():
             print(f"Volume: {volume}")
 
             # Determine how many LEDs to trigger.
-            min_volume = 70
-            max_volume = 110
+            min_volume = 55
+            max_volume = 100
             if volume < min_volume:
                 trigger_count = 0
             else:

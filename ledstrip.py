@@ -23,12 +23,11 @@ class LEDStrip:
         self.strip.show()
 
     def update_leds(self, trigger_count):
+        if trigger_count <= 0:
+            return 0
         transitions = 0
-        count = 0
-        i = 0
-        while count < trigger_count and i < self.led_count:
+        for i in range(self.led_count):
             if tuple(self.strip[i]) == RED:
-                i += 1
                 continue
             current = tuple(self.strip[i])
             if current == OFF:
@@ -42,19 +41,18 @@ class LEDStrip:
                 change = "ORANGE to RED"
             self.last_update[i] = time.time()
             if change in ["YELLOW to ORANGE", "ORANGE to RED"]:
-                transitions += 1
-            count += 1
-            i += 1
+                transitions = 1
+            break  # only one LED changes per cycle
         return transitions
 
     def propagate(self, trigger_count, transitions):
-        j = trigger_count - 1
-        while j >= 0 and transitions > 0:
+        if trigger_count <= 0 or transitions <= 0:
+            return
+        for j in range(trigger_count - 1, -1, -1):
             if tuple(self.strip[j]) == OFF:
                 self.strip[j] = YELLOW
                 self.last_update[j] = time.time()
-                transitions -= 1
-            j -= 1
+                break  # only update one LED
 
     def fade(self, fade_delay):
         current_time = time.time()
@@ -64,7 +62,7 @@ class LEDStrip:
                 if current == RED:
                     self.strip[i] = ORANGE
                     self.last_update[i] = current_time
-                    break
+                    break  # only one LED fades per cycle
                 elif current == ORANGE:
                     self.strip[i] = YELLOW
                     self.last_update[i] = current_time
