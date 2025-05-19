@@ -24,19 +24,19 @@ PHYSICAL_LED_CONFIGS = [
         'pin': board.D21,
         'total_leds': 150,
         'brightness': 1.0,
-        'segments': [(0, 74), (148, 75, True)]
+        'segments': [(0, 74, False), (148, 75, True)]
     },
     {
         'pin': board.D18,
         'total_leds': 150,
         'brightness': 1.0,
-        'segments': [(0, 74), (148, 75, True)]
+        'segments': [(0, 74, False), (148, 75, True)]
     },
     {
         'pin': board.D12,
         'total_leds': 150,
         'brightness': 1.0,
-        'segments': [(0, 74), (148, 75, True)]
+        'segments': [(0, 74, False), (148, 75, True)]
     }
 ]
 
