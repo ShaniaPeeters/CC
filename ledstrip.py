@@ -9,10 +9,11 @@ RED    = (255, 0, 0)
 OFF    = (0, 0, 0)
 
 class LEDStrip:
-    def __init__(self, pin, num_leds, brightness):
-        self.strip = neopixel.NeoPixel(pin, num_leds, brightness=brightness, auto_write=False)
-        self.led_count = len(self.strip)  # dynamically determine LED count from the neopixel object
+    def __init__(self, pin, start_led, num_leds, brightness, reverse):
+        self.strip = neopixel.NeoPixel(pin, num_leds*2, brightness=brightness, auto_write=False)
+        self.led_count = num_leds # dynamically determine LED count from the neopixel object
         self.last_update = [time.time() for _ in range(self.led_count)]
+        self.start_led = start_led
 
     def initialize(self):
         # Set all LEDs to white, wait, then turn them off
@@ -26,7 +27,8 @@ class LEDStrip:
         if trigger_count <= 0:
             return 0
         transitions = 0
-        for i in range(self.led_count):
+        for ix in range(self.led_count):
+            i = ix + self.start_led
             if tuple(self.strip[i]) == RED:
                 continue
             current = tuple(self.strip[i])

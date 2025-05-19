@@ -20,13 +20,14 @@ MAX_VOLUME = 100
 # Replace single LED strip configuration with multiple LED configurations:
 # Each tuple is (pin, number of LEDs, brightness)
 LED_CONFIGS = [
-    (board.D21, 150, 1.0),  # First LED strip
-    (board.D18, 150, 1.0), # Second LED strip
-    (board.D12, 150, 1.0)  # Third LED strip
+    (board.D12, 0, 148, 1.0, False),  # First LED strip
+    (board.D18, 0, 148, 1.0, False), # Second LED strip
+    (board.D21, 0,148, 1.0, False)  # Third LED strip
 ]
 
 # Create LEDStrip instances from LED_CONFIGS
-ledstrips = [LEDStrip(pin, num, brightness) for (pin, num, brightness) in LED_CONFIGS]
+
+ledstrips = [LEDStrip(pin, start, num, brightness, reverse) for (pin, start, num, brightness, reverse) in LED_CONFIGS]
 
 def get_audio_input():
     # Initialize PyAudio
