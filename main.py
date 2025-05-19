@@ -2,44 +2,60 @@ import pyaudio
 import numpy as np
 import time
 import board
-from ledstrip import LEDStrip  # new import
-dir(board)
-#to run use  sudo $(which python) /home/piremote/Desktop/CC/main.py
+from ledstrip import LEDStrip
 
-# Parameters
+# Parameters for audio processing
 CHUNK = 2048               # Number of audio samples per frame
 FORMAT = pyaudio.paInt16   # Audio format (16-bit PCM)
-CHANNELS = 1               # Number of audio channels (1 for mono)
-RATE = 44100               # Sample rate (samples per second)
+CHANNELS = 1               # Number of audio channels (mono)
+RATE = 44100               # Sample rate
 
 # Configurable volume thresholds
 MIN_VOLUME = 40 
 MAX_VOLUME = 100
 
-# LED strip configuration:
-# Replace single LED strip configuration with multiple LED configurations:
-# Each tuple is (pin, number of LEDs, brightness)
-LED_CONFIGS = [
-    (board.D21, 150, 1.0),  # First LED strip
-    (board.D18, 150, 1.0), # Second LED strip
-    (board.D12, 150, 1.0)  # Third LED strip
+# Configuration for physical LED strips and their segments.
+# Each dictionary defines one physical strip along with its segments.
+# Each segment is a tuple (start_index, number_of_leds)
+PHYSICAL_LED_CONFIGS = [
+    {
+        'pin': board.D21,
+        'total_leds': 150,
+        'brightness': 1.0,
+        'segments': [(0, 74), (75, 75)]
+    },
+    {
+        'pin': board.D18,
+        'total_leds': 150,
+        'brightness': 1.0,
+        'segments': [(0, 74), (75, 75)]
+    },
+    {
+        'pin': board.D12,
+        'total_leds': 150,
+        'brightness': 1.0,
+        'segments': [(0, 74), (75, 75)]
+    }
 ]
 
-# Create LEDStrip instances from LED_CONFIGS
-ledstrips = [LEDStrip(pin, num, brightness) for (pin, num, brightness) in LED_CONFIGS]
+# Create LEDStrip objects using the configuration above.
+ledstrips = []
+for config in PHYSICAL_LED_CONFIGS:
+    pin = config['pin']
+    total_leds = config['total_leds']
+    brightness = config['brightness']
+    for (start, num_leds) in config['segments']:
+        ledstrips.append(LEDStrip(pin, total_leds, brightness, start=start, num_leds=num_leds))
 
 def get_audio_input():
-    # Initialize PyAudio
     p = pyaudio.PyAudio()
-
-    # Open audio stream
     stream = p.open(format=FORMAT,
                     channels=CHANNELS,
                     rate=RATE,
                     input=True,
                     frames_per_buffer=CHUNK)
 
-    # Initialize LED strips
+    # Initialize each LED segment
     for ls in ledstrips:
         ls.initialize()
 
@@ -49,30 +65,25 @@ def get_audio_input():
 
     try:
         while True:
-            # Read audio input
             try:
                 data = stream.read(CHUNK, exception_on_overflow=False)
             except OSError as e:
                 print(f"Audio input overflowed: {e}")
                 continue
 
-            # Process audio data to calculate volume (RMS)
             audio_data = np.frombuffer(data, dtype=np.int16)
             volume = np.sqrt(np.mean(audio_data**2))
             volume = np.nan_to_num(volume)
             if volume == 0:
-                volume = MAX_VOLUME  # act as if it's max audio level
+                volume = MAX_VOLUME
             print(f"Volume: {volume}")
 
-            # Determine how many LEDs to trigger.
             if volume < MIN_VOLUME:
                 trigger_count = 0
             else:
-                # Linear scaling from 1 LED to full count across volume range.
                 trigger_count = min(100, 1 + int((volume - MIN_VOLUME) * (100 - 1) / (MAX_VOLUME - MIN_VOLUME)))
             print(f"Triggering {trigger_count} LEDs")
 
-            # Update each LED strip: trigger LEDs and fade
             for ls in ledstrips:
                 transitions = ls.update_leds(trigger_count)
                 ls.propagate(trigger_count, transitions)
@@ -88,7 +99,6 @@ def get_audio_input():
     stream.close()
     p.terminate()
 
-    # Clear all LED strips
     for ls in ledstrips:
         ls.clear()
 
