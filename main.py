@@ -15,26 +15,28 @@ MIN_VOLUME = 40
 MAX_VOLUME = 100
 
 # Configuration for physical LED strips and their segments.
-# Each dictionary defines one physical strip along with its segments.
-# Each segment is a tuple (start_index, number_of_leds)
+# Each dictionary defines one physical strip with its segments.
+# Each segment is defined as a tuple:
+#   (start_index, number_of_leds) for forward segments, or
+#   (start_index, number_of_leds, True) for reverse segments.
 PHYSICAL_LED_CONFIGS = [
     {
         'pin': board.D21,
         'total_leds': 150,
         'brightness': 1.0,
-        'segments': [(0, 74), (148, 75)]
+        'segments': [(0, 74), (148, 75, True)]
     },
     {
         'pin': board.D18,
         'total_leds': 150,
         'brightness': 1.0,
-        'segments': [(0, 74), (148, 75)]
+        'segments': [(0, 74), (148, 75, True)]
     },
     {
         'pin': board.D12,
         'total_leds': 150,
         'brightness': 1.0,
-        'segments': [(0, 74), (148, 75)]
+        'segments': [(0, 74), (148, 75, True)]
     }
 ]
 
@@ -44,8 +46,13 @@ for config in PHYSICAL_LED_CONFIGS:
     pin = config['pin']
     total_leds = config['total_leds']
     brightness = config['brightness']
-    for (start, num_leds) in config['segments']:
-        ledstrips.append(LEDStrip(pin, total_leds, brightness, start=start, num_leds=num_leds))
+    for segment in config['segments']:
+        if len(segment) == 3:
+            start, num_leds, reverse = segment
+        else:
+            start, num_leds = segment
+            reverse = False
+        ledstrips.append(LEDStrip(pin, total_leds, brightness, start=start, num_leds=num_leds, reverse=reverse))
 
 def get_audio_input():
     p = pyaudio.PyAudio()
@@ -55,7 +62,7 @@ def get_audio_input():
                     input=True,
                     frames_per_buffer=CHUNK)
 
-    # Initialize each LED segment
+    # Initialize each LED segment.
     for ls in ledstrips:
         ls.initialize()
 
