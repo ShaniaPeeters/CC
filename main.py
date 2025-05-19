@@ -3,7 +3,7 @@ import numpy as np
 import time
 import board
 from ledstrip import LEDStrip  # new import
-
+dir(board)
 #to run use  sudo $(which python) /home/piremote/Desktop/CC/main.py
 
 # Parameters
@@ -13,14 +13,16 @@ CHANNELS = 1               # Number of audio channels (1 for mono)
 RATE = 44100               # Sample rate (samples per second)
 
 # Configurable volume thresholds
-MIN_VOLUME = 65
+MIN_VOLUME = 40 
 MAX_VOLUME = 100
 
 # LED strip configuration:
 # Replace single LED strip configuration with multiple LED configurations:
 # Each tuple is (pin, number of LEDs, brightness)
 LED_CONFIGS = [
-    (board.D18, 150, 1.0)  # First LED strip
+    (board.D21, 150, 1.0),  # First LED strip
+    (board.D18, 150, 1.0), # Second LED strip
+    (board.D12, 150, 1.0)  # Third LED strip
 ]
 
 # Create LEDStrip instances from LED_CONFIGS
