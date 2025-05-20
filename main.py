@@ -7,16 +7,19 @@ import neopixel
 # LED strip configuration for NeoPixel
 TOTAL_LEDS = 148
 SEGMENT_SIZE = 74  # 74 LEDs per segment
-LED_PIN = board.D18  # Change this if your LED strip is connected to a different pin
 
-# Initialize the NeoPixel strip
-pixels = neopixel.NeoPixel(LED_PIN, TOTAL_LEDS, brightness=0.2, auto_write=False, pixel_order=neopixel.GRB)
+# LED pins for the three strips
+LED_PINS = [board.D18, board.D12, board.D21]
+
+# Initialize the NeoPixel strips in a list
+led_strips = [neopixel.NeoPixel(pin, TOTAL_LEDS, brightness=0.2, auto_write=False, pixel_order=neopixel.GRB)
+              for pin in LED_PINS]
 
 prev_active = 0
 
 def get_color_relative(i, active_count):
     if active_count == 0:
-        return (0,0,0)
+        return (0, 0, 0)
     cutoff = active_count / 3
     if i < cutoff:
         return (255, 0, 0)        # red
@@ -26,7 +29,7 @@ def get_color_relative(i, active_count):
         return (255, 225, 0)      # yellow
 
 def build_led_colors(active_count):
-    # Build colors for one segment
+    # Build colors for one 74-LED segment
     colors = []
     for i in range(SEGMENT_SIZE):
         if i < active_count:
@@ -37,24 +40,11 @@ def build_led_colors(active_count):
     return colors + list(reversed(colors))
 
 def update_leds_immediate(active_count):
-    # For each segment, light the first active_count LEDs with
-    # a smooth gradient based on their relative index.
-    for i in range(SEGMENT_SIZE):
-        if i < active_count:
-            color = get_color_relative(i, active_count)
-        else:
-            color = (0, 0, 0)
-        pixels[i] = color
-
-    for i in range(SEGMENT_SIZE):
-        idx = TOTAL_LEDS - 1 - i
-        if i < active_count:
-            color = get_color_relative(i, active_count)
-        else:
-            color = (0, 0, 0)
-        pixels[idx] = color
-
-    pixels.show()
+    # Update all LED strips with the same colors
+    full_colors = build_led_colors(active_count)
+    for strip in led_strips:
+        strip[:] = full_colors
+        strip.show()
     print("Active LEDs per segment:", active_count)
 
 def update_leds_animated(new_active):
@@ -78,19 +68,21 @@ def update_leds_animated(new_active):
                     int(old[1] * (1 - t) + new[1] * t),
                     int(old[2] * (1 - t) + new[2] * t)
                 ))
-            pixels[:] = blended_colors
-            pixels.show()
+            for strip in led_strips:
+                strip[:] = blended_colors
+                strip.show()
             time.sleep(0.015)  # adjust delay as needed for smoothness
         
         prev_active = new_active
         print("Active LEDs per segment:", new_active)
 
 def turn_off_leds():
-    for i in range(SEGMENT_SIZE):
-        pixels[i] = (0, 0, 0)
-        idx = TOTAL_LEDS - 1 - i
-        pixels[idx] = (0, 0, 0)
-    pixels.show()
+    for strip in led_strips:
+        for i in range(SEGMENT_SIZE):
+            strip[i] = (0, 0, 0)
+            idx = TOTAL_LEDS - 1 - i
+            strip[idx] = (0, 0, 0)
+        strip.show()
 
 # Audio stream configuration
 CHUNK = 1024
