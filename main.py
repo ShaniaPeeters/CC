@@ -60,23 +60,28 @@ def update_leds_immediate(active_count):
 def update_leds_animated(new_active):
     global prev_active
     if new_active != prev_active:
-        # Precompute the final state gradient using new_active
-        final_colors = build_led_colors(new_active)
-        step = 1 if new_active > prev_active else -1
-        for active in range(prev_active, new_active, step):
-            temp_segment = []
-            # Build a temporary segment using the precomputed final color
-            # for indices that should be lit and off for others.
-            for i in range(SEGMENT_SIZE):
-                temp_segment.append(final_colors[i] if i < active else (0, 0, 0))
-            full_colors = temp_segment + list(reversed(temp_segment))
-            # Update the full LED buffer at once
-            pixels[:] = full_colors
+        old_colors = build_led_colors(prev_active)
+        new_colors = build_led_colors(new_active)
+        
+        # Use a minimum number of steps for small transitions for smoother animation
+        delta = abs(new_active - prev_active)
+        min_steps = 10
+        steps = max(min_steps, delta + 1)
+        
+        for step in range(steps):
+            # Cosine easing for a smooth ease-in, ease-out effect
+            t = (1 - np.cos(np.pi * step / (steps - 1))) / 2 if steps > 1 else 1
+            blended_colors = []
+            for old, new in zip(old_colors, new_colors):
+                blended_colors.append((
+                    int(old[0] * (1 - t) + new[0] * t),
+                    int(old[1] * (1 - t) + new[1] * t),
+                    int(old[2] * (1 - t) + new[2] * t)
+                ))
+            pixels[:] = blended_colors
             pixels.show()
-            time.sleep(0.01)  # adjust delay as needed
-        # Set the final LED state
-        pixels[:] = final_colors
-        pixels.show()
+            time.sleep(0.015)  # adjust delay as needed for smoothness
+        
         prev_active = new_active
         print("Active LEDs per segment:", new_active)
 
@@ -102,16 +107,33 @@ stream = p.open(format=FORMAT,
 
 print("Monitoring audio... Press Ctrl+C to stop.")
 
+MIN_RMS_THRESHOLD = 30.0  # Only react to sounds louder than this value
+
 try:
     while True:
         data = stream.read(CHUNK, exception_on_overflow=False)
         samples = np.frombuffer(data, dtype=np.int16)
         rms = np.sqrt(np.mean(np.square(samples)))
-        if np.isnan(rms):
-            rms = 0.0
+        peak = np.max(np.abs(samples))
         
-        max_rms = 100.0   # adjust as necessary
-        active_count = int((rms / max_rms) * SEGMENT_SIZE)
+        # Combine RMS and peak to better capture transients like a break
+        effective = max(rms, peak / 1000.0)
+        
+        # Amplify the effective value to boost transient response
+        gain = 3.0  # Increase this value if needed
+        effective *= gain
+        
+        if np.isnan(effective):
+            effective = 0.0
+        
+        max_effective = 300.0   # Adjust as needed for your mic's range
+        if effective < MIN_RMS_THRESHOLD:
+            active_count = 0
+        else:
+            # Scale the response so that only sounds above the threshold trigger LEDs
+            normalized = (effective - MIN_RMS_THRESHOLD) / (max_effective - MIN_RMS_THRESHOLD)
+            factor = normalized ** 1.5  # Exponent enhances response to louder/thumpier sounds
+            active_count = int(factor * SEGMENT_SIZE)
         active_count = min(active_count, SEGMENT_SIZE)
         
         update_leds_animated(active_count)
