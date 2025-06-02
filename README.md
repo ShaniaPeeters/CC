@@ -10,15 +10,16 @@
 ## Stap voor stap
 ### Benodigdheden:
 
+
 ### De doos:
 
 ### De LEDS:
 
-### De connectors
+### De connectors:
 
-### De Raspberry Pi
+### De Raspberry Pi:
 
-### Alles samen
+### Alles samen:
 
 ## Code
 Deze code ( main.py ) is bedoeld om een NeoPixel LED-strip aan te sturen op basis van het geluidsniveau dat wordt gemeten via een microfoon. Het script werkt als volgt:
