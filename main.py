@@ -1,83 +1,158 @@
 import pyaudio
 import numpy as np
-import time  # Import time for delay
-from mock_ws281x import PixelStrip, Color  # Import the library for WS2812B LEDs this is for testing on a non-Raspberry Pi
-# from rpi_ws281x import PixelStrip, Color  # Uncomment this line when running on Raspberry Pi
+import time
+import board
+import neopixel
+import collections
 
-# Parameters
-CHUNK = 512   # Reduce chunk size
-FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
-CHANNELS = 1  # Number of audio channels (1 for mono)
-RATE = 22050  # Reduce sample rate
+# LED strip configuration for NeoPixel
+TOTAL_LEDS = 148
+SEGMENT_SIZE = 74  # 74 LEDs per segment
 
-# LED strip configuration:
-LED_COUNT = 30        # Number of LED pixels.
-LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
-LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
-LED_DMA = 10          # DMA channel to use for generating signal (try 10)
-LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
-LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
-LED_CHANNEL = 0       # Set to 1 for GPIOs 13, 19, 41, 45 or 53
+# LED pins for the three strips
+LED_PINS = [board.D18, board.D12, board.D21]
 
-def get_audio_input():
-    # Initialize PyAudio
-    p = pyaudio.PyAudio()
+# Initialize the NeoPixel strips in a list
+led_strips = [neopixel.NeoPixel(pin, TOTAL_LEDS, brightness=0.2, auto_write=False, pixel_order=neopixel.GRB)
+              for pin in LED_PINS]
 
-    # Open stream
-    stream = p.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    frames_per_buffer=CHUNK)
+prev_active = 0
 
-    # Initialize LED strip
-    strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
-    strip.begin()
+def get_color_relative(i, active_count):
+    if active_count == 0:
+        return (0, 0, 0)
+    cutoff = active_count / 3
+    if i < cutoff:
+        return (255, 0, 0)        # red
+    elif i < 2 * cutoff:
+        return (255, 75, 0)      # orange
+    else:
+        return (255, 225, 0)      # yellow
 
-    print("Listening...")
+def build_led_colors(active_count):
+    # Build colors for one 74-LED segment
+    colors = []
+    for i in range(SEGMENT_SIZE):
+        if i < active_count:
+            colors.append(get_color_relative(i, active_count))
+        else:
+            colors.append((0, 0, 0))
+    # Second segment is the reverse of the first
+    return colors + list(reversed(colors))
 
-    try:
-        while True:
-            try:
-                data = stream.read(CHUNK, exception_on_overflow=False)  # Disable exception on overflow
-            except OSError as e:
-                print(f"Audio input overflowed: {e}")
-                data = b'\x00' * CHUNK  # Use silence as fallback
+def update_leds_immediate(active_count):
+    # Update all LED strips with the same colors
+    full_colors = build_led_colors(active_count)
+    for strip in led_strips:
+        strip[:] = full_colors
+        strip.show()
+    print("Active LEDs per segment:", active_count)
 
-            # Convert the data to numpy array
-            audio_data = np.frombuffer(data, dtype=np.int16)
-            # Calculate the volume (RMS)
-            volume = np.sqrt(np.mean(audio_data**2))
-            print(f"Volume: {volume}")
+def update_leds_animated(new_active):
+    global prev_active
+    if new_active != prev_active:
+        old_colors = build_led_colors(prev_active)
+        new_colors = build_led_colors(new_active)
 
-            # Perform actions based on volume
-            if volume > 50:
-                print("Sound detected!")
-                color = Color(255, 0, 0)  # Red color for high volume
-            else:
-                print("Sound is quiet.")
-                color = Color(0, 0, 255)  # Blue color for low volume
+        delta = abs(new_active - prev_active)
+        # If fading out, use fixed number of steps and longer delay for a slower fade-out.
+        if new_active < prev_active:
+            steps = 20         # Fade-out slower, independent of delta
+            step_delay = 0.05  # Longer delay for fade-out
+        else:
+            min_steps = 10
+            steps = max(min_steps, delta + 1)
+            step_delay = 0.015
 
-            # Set LED color based on volume
-            for i in range(strip.numPixels()):
-                strip.setPixelColor(i, color)
-            strip.show()
+        for step in range(steps):
+            # Use cosine easing for a smooth fade
+            t = (1 - np.cos(np.pi * step / (steps - 1))) / 2 if steps > 1 else 1
+            blended_colors = []
+            for old, new in zip(old_colors, new_colors):
+                blended_colors.append((
+                    int(old[0] * (1 - t) + new[0] * t),
+                    int(old[1] * (1 - t) + new[1] * t),
+                    int(old[2] * (1 - t) + new[2] * t)
+                ))
+            for strip in led_strips:
+                strip[:] = blended_colors
+                strip.show()
+            time.sleep(step_delay)
 
-            time.sleep(0.1)  # Add a slight delay of 0.1 seconds
+        prev_active = new_active
+        print("Active LEDs per segment:", new_active)
 
-    except KeyboardInterrupt:
-        print("Stopping...")
+def turn_off_leds():
+    for strip in led_strips:
+        for i in range(SEGMENT_SIZE):
+            strip[i] = (0, 0, 0)
+            idx = TOTAL_LEDS - 1 - i
+            strip[idx] = (0, 0, 0)
+        strip.show()
 
-    # Stop and close the stream
-    stream.stop_stream()
-    stream.close()
-    # Terminate PyAudio
-    p.terminate()
+# Audio stream configuration
+CHUNK = 1024
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 44100
 
-    # Clear the LED strip
-    for i in range(strip.numPixels()):
-        strip.setPixelColor(i, Color(0, 0, 0))
-    strip.show()
+p = pyaudio.PyAudio()
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                input=True,
+                frames_per_buffer=CHUNK)
 
-if __name__ == "__main__":
-    get_audio_input()
+print("Monitoring audio... Press Ctrl+C to stop.")
+
+MIN_RMS_THRESHOLD = 1000.0  # Only react to sounds louder than this value
+
+# Define a maximum effective value (adjust based on your environment)
+MAX_EFFECTIVE = 3000.0
+
+# Parameters for our basic onset detection
+HISTORY_SIZE = 10  # number of recent effective values to average
+THRESHOLD_MULTIPLIER = 1.5  # how many times above the average to trigger
+EXTRA_MINIMUM = 20.0  # additional absolute boost to avoid false triggers
+
+energy_history = collections.deque(maxlen=HISTORY_SIZE)
+gain = 3.0  # Amplification factor
+
+try:
+    while True:
+        data = stream.read(CHUNK, exception_on_overflow=False)
+        samples = np.frombuffer(data, dtype=np.int16).astype(np.float32)
+        rms = np.sqrt(np.mean(np.square(samples)))
+        peak = np.max(np.abs(samples))
+        
+        # Combine RMS and peak to capture transients
+        effective = max(rms, peak / 1000.0)
+        effective *= gain
+        if np.isnan(effective):
+            effective = 0.0
+
+        # Update moving average (optional, if you still want to monitor trends)
+        energy_history.append(effective)
+        moving_avg = np.mean(energy_history) if energy_history else 0.0
+
+        # Map the effective value to a number of active LEDs
+        if effective < MIN_RMS_THRESHOLD:
+            active_count = 0
+        elif effective > MAX_EFFECTIVE:
+            active_count = SEGMENT_SIZE
+        else:
+            active_count = int(((effective - MIN_RMS_THRESHOLD) / (MAX_EFFECTIVE - MIN_RMS_THRESHOLD)) * SEGMENT_SIZE)
+        
+        update_leds_animated(active_count)
+        
+        time.sleep(0.05)
+except KeyboardInterrupt:
+    pass
+
+stream.stop_stream()
+stream.close()
+p.terminate()
+
+turn_off_leds()
+print("Stopped audio monitoring")
+
