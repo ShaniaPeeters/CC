@@ -5,6 +5,8 @@ import board
 import neopixel
 import collections
 
+#To use input "sudo $(which python) /home/piremote/Desktop/CC/main.py" into terminal 
+
 # LED strip configuration for NeoPixel
 TOTAL_LEDS = 148
 SEGMENT_SIZE = 74  # 74 LEDs per segment
