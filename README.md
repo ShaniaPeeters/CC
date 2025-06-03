@@ -9,18 +9,37 @@
 
 ## Stap voor stap
 ### Benodigdheden:
-
+- 3 programeerbare LED strips van 150 LEDS (en stroomvoorziening)
+- 3 Houten panelen van x op x
+- 10 houten panelen van x op x
+- 3 plexiglas platen van x op x
+- 18 enkele connectors
+- 6 dubbele connectors
+- raspberry pi 4 (met gpio expansion)
+- soldeerbout
+- boormachine
+- een USB microfoon
+- veel bouten van 6mm op 20 ( en bijpassende moeren)
+- kabeltjes voor de LEDS
+- Een licht doorlatende zwarte doek van minstens 1.5m op 3m
+- keramieke borden
+- Een 3D printer
+- lijm
+- Laptop met visual studio code
+- Ethernet kabel
+- lazercutter of een zaag
 
 ### De doos:
 
 ### De LEDS:
-
+Van de 3 LED strips maken we 6 door deze doormidden te knippen. Zorg ervoor dat bijde kanten 74 LEDS hebben.
+Soldeer dan elks 2 LED strips aan elkaar (doolmiddel van kabbeltjes) met voldoende spatie ertussen zodat we later deze over de grond kunnen versprijden.
 ### De connectors:
-
+Gebruik een 3D printer om de connectors af te printen.
 ### De Raspberry Pi:
-
+Zorg ervoor dat je visual studio code op de raspberry pi instaleert zodat je via ssh de code op de raspberry kan zetten. Instaleer dan al de benodigde libraries voor de code. 
 ### Alles samen:
-
+Sluit de microfoon en de LEDS aan op de raspberry pi. Gebruik de connectors om de houten en plexiglas panelen aan elkaar te bevestigen. 6 van de kleine panelen komen vanonder, de 6 grote vanboven. De 4 overblijvende panelen lijm je aan elkaar om een cubus vormige doos te maken zonder voor of onderkant, hier steken we de microfoon en raspberry pi onder. Bevestig de LEDS op de gewenste locatie op de vloer. Leg een stuk hout of iets dergerlijk onder waar de doos komt te staan. Bedek deze dan met de zwarte doek. Plaats dan de doos op zijn plaats. Steek alles in het stopcontact en gebruik het commando in de code om het programma op te runnen in de terminal.
 ## Code
 Deze code ( main.py ) is bedoeld om een NeoPixel LED-strip aan te sturen op basis van het geluidsniveau dat wordt gemeten via een microfoon. Het script werkt als volgt:
 
