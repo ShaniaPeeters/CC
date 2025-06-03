@@ -27,7 +27,7 @@
 - lijm
 - Laptop met visual studio code
 - Ethernet kabel
-- lazercutter of een zaag
+- lasercutter of een zaag
 
 ### De doos:
 
