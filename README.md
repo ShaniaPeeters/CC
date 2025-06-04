@@ -10,9 +10,9 @@
 ## Stap voor stap
 ### Benodigdheden:
 - 3 programeerbare LED strips van 150 LEDS (en stroomvoorziening)
-- 3 Houten panelen van x op x
-- 10 houten panelen van x op x
-- 3 plexiglas platen van x op x
+- 3 Houten panelen van 38 op 118
+- 10 houten panelen van 38 op 38
+- 3 plexiglas platen van 38 op 118
 - 18 enkele connectors
 - 6 dubbele connectors
 - raspberry pi 4 (met gpio expansion)
@@ -28,14 +28,16 @@
 - Laptop met visual studio code
 - Ethernet kabel
 - lasercutter of een zaag
+- Zwarte acrylverf
 
 ### De doos:
-
+Lasercut of zaag de panelen op de gewenste grote. Bij Lasercutten voorzij best de gaatjes voor de connectors al op voorhand, deze zijn 6mm in diameter. De gaatjes kan je echter later ook nog boren. 
+Op een van de kleine houte panelen voorzie je gaatjes om het geluid van de vallende borden door te laten naar de microfoon. Verf alle houten panelen zwart.
 ### De LEDS:
 Van de 3 LED strips maken we 6 door deze doormidden te knippen. Zorg ervoor dat bijde kanten 74 LEDS hebben.
 Soldeer dan elks 2 LED strips aan elkaar (doolmiddel van kabbeltjes) met voldoende spatie ertussen zodat we later deze over de grond kunnen versprijden.
 ### De connectors:
-Gebruik een 3D printer om de connectors af te printen.
+Gebruik een 3D printer om de connectors af te printen. Gebruik hiervoor PLA of PetG. Best in een zwart fillament, anders kan je ze ook gewoon zwart schilderen.
 ### De Raspberry Pi:
 Zorg ervoor dat je visual studio code op de raspberry pi instaleert zodat je via ssh de code op de raspberry kan zetten. Instaleer dan al de benodigde libraries voor de code. 
 ### Alles samen:
