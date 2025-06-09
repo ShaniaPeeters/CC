@@ -5,7 +5,7 @@
 - Valkuilen
 
 ## Video
-[![Watch the video](https://img.youtube.com/vi/g39wajMhOLU/maxresdefault.jpg)](https://www.youtube.com/watch?v=g39wajMhOLU)
+[![Bekijk de video](https://img.youtube.com/vi/g39wajMhOLU/0.jpg)](https://www.youtube.com/watch?v=g39wajMhOLU)
 
 ## Stap voor stap
 ### Benodigdheden:
